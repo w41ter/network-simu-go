@@ -3,7 +3,7 @@ package network
 import (
 	"sync/atomic"
 
-	"github.com/thinkermao/network-simu/utils/sync"
+	"github.com/thinkermao/network-simu-go/utils/sync"
 )
 
 type endpoint struct {
