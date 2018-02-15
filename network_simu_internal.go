@@ -51,10 +51,3 @@ func (n *network) isReliable() bool {
 
 	return n.reliable
 }
-
-func (n *network) isLongReorderding() bool {
-	n.mutex.RLock()
-	defer n.mutex.RUnlock()
-
-	return n.longReordering
-}

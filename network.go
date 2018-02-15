@@ -9,7 +9,6 @@ type Network interface {
 
 	// config
 	SetReliable(yes bool)
-	SetLongReordering(yes bool)
 	SetLongDelays(yes bool)
 
 	// for endpoint

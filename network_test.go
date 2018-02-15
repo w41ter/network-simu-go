@@ -29,10 +29,8 @@ func TestBasic(t *testing.T) {
 	})
 
 	call2From := -1
-	call2Data := make([]byte, 0)
 	builder.AddEndpoint(func(from int, data []byte) {
 		call2From = from
-		call2Data = data
 
 		wg.Done()
 	})
@@ -91,8 +89,9 @@ func TestDisconnect(t *testing.T) {
 	net.Disable(peer1)
 
 	// remote not reachable
-	if err = net.Call(peer2, peer1, []byte{}); err != nil {
-		t.Fatal(err)
+	err = net.Call(peer2, peer1, []byte{})
+	if err != errPeerNotReachable {
+		t.Fatal("peer is reachable")
 	}
 	time.Sleep(1 * time.Second)
 }

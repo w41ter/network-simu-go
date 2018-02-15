@@ -11,19 +11,17 @@ type Builder interface {
 }
 
 type builder struct {
-	ends           []*endpoint
-	longDelay      bool
-	reliable       bool
-	longReordering bool
+	ends      []*endpoint
+	longDelay bool
+	reliable  bool
 }
 
 // CreateBuilder create instance of Builder.
 func CreateBuilder() Builder {
 	return &builder{
-		ends:           []*endpoint{},
-		longDelay:      false,
-		reliable:       true,
-		longReordering: false,
+		ends:      []*endpoint{},
+		longDelay: false,
+		reliable:  true,
 	}
 }
 
