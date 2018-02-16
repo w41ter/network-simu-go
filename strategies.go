@@ -60,5 +60,5 @@ func (sg *strategies) before(from, to int) error {
 }
 
 func (sg *strategies) after(from, to int) error {
-	return nil
+	return sg.reachableStrategies(to)
 }

@@ -15,12 +15,11 @@ func (n *network) getEndpoint(id int) *endpoint {
 
 func (n *network) service(msg message) {
 	if err := n.strategies.after(msg.From, msg.To); err != nil {
-		fmt.Printf("strategies: %v", err)
+		fmt.Printf("strategies: %d => %d err: %v\n", msg.From, msg.To, err)
 		return
 	}
 
 	end := n.getEndpoint(msg.To)
-	fmt.Printf("service: %v[%v]\n", end, end.enab)
 
 	end.callback(msg.From, msg.Data)
 }
