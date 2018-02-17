@@ -48,11 +48,11 @@ func TestBasic(t *testing.T) {
 
 	if call1From != peer3.ID() || call2From != -1 {
 		t.Fatalf("want call From: %d get: %d and peer 2: %d",
-			peer3, call1From, call2From)
+			peer3.ID(), call1From, call2From)
 	}
 
 	if len(call1Data) != 1 || call1Data[0] != 0x1 {
-		t.Fatalf("want get Data From: %d", peer1)
+		t.Fatalf("want get Data From: %d", peer1.ID())
 	}
 }
 
