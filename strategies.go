@@ -33,7 +33,7 @@ func (sg *strategies) longDelayStrategies() {
 		time.Sleep(time.Duration(ms) * time.Millisecond)
 	} else {
 		// short delay
-		ms := rand.Int() % 100
+		ms := rand.Int() % 27
 		time.Sleep(time.Duration(ms) * time.Millisecond)
 	}
 }

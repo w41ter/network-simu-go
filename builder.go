@@ -5,7 +5,7 @@ type endCallback func(from int, data []byte)
 // Builder used by constom to build network
 type Builder interface {
 	// AddEndpoint add new end to network, and return it id.
-	AddEndpoint(cb endCallback) int
+	AddEndpoint() Handler
 	// Build create instance of Network.
 	Build() Network
 }
@@ -25,13 +25,20 @@ func CreateBuilder() Builder {
 	}
 }
 
-func (b *builder) AddEndpoint(cb endCallback) int {
+func (b *builder) AddEndpoint() Handler {
 	newID := len(b.ends)
-	end := createEndpoint(newID, cb)
+	h := createHandler(newID)
+	end := createEndpoint(h)
 	b.ends = append(b.ends, end)
-	return newID
+
+	return h
 }
 
 func (b *builder) Build() Network {
-	return createNetwork(b)
+	net := createNetwork(b)
+	for i := 0; i < len(b.ends); i++ {
+		end := b.ends[i]
+		end.handler.BindNetwork(net)
+	}
+	return net
 }

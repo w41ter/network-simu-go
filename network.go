@@ -17,3 +17,15 @@ type Network interface {
 	Enable(id int)
 	IsEnable(id int) bool
 }
+
+// Handler is a network handle.
+type Handler interface {
+	Call(to int, data []byte) error
+	BindReceiver(cb endCallback)
+	ID() int
+
+	GetCount() uint64
+	Disable()
+	Enable()
+	IsEnable() bool
+}

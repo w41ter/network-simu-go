@@ -7,18 +7,16 @@ import (
 )
 
 type endpoint struct {
-	id       int
-	count    uint64
-	enab     *sync.AtomicBool
-	callback endCallback
+	count   uint64
+	enab    *sync.AtomicBool
+	handler *handler
 }
 
-func createEndpoint(id int, callback endCallback) *endpoint {
+func createEndpoint(handler *handler) *endpoint {
 	return &endpoint{
-		id:       id,
-		count:    0,
-		enab:     sync.NewAtomicBool(),
-		callback: callback,
+		count:   0,
+		enab:    sync.NewAtomicBool(),
+		handler: handler,
 	}
 }
 

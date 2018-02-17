@@ -21,7 +21,8 @@ func TestBasic(t *testing.T) {
 	call1From := -1
 	call1Data := make([]byte, 0)
 
-	peer1 := builder.AddEndpoint(func(from int, data []byte) {
+	peer1 := builder.AddEndpoint()
+	peer1.BindReceiver(func(from int, data []byte) {
 		call1From = from
 		call1Data = data
 
@@ -29,22 +30,23 @@ func TestBasic(t *testing.T) {
 	})
 
 	call2From := -1
-	builder.AddEndpoint(func(from int, data []byte) {
+	builder.AddEndpoint().BindReceiver(func(from int, data []byte) {
 		call2From = from
 
 		wg.Done()
 	})
 
-	peer3 := builder.AddEndpoint(IgnoreCallback)
+	peer3 := builder.AddEndpoint()
+	peer3.BindReceiver(IgnoreCallback)
 
-	net := builder.Build()
-	if err := net.Call(peer3, peer1, []byte{0x1}); err != nil {
+	builder.Build()
+	if err := peer3.Call(peer1.ID(), []byte{0x1}); err != nil {
 		t.Fatal(err)
 	}
 
 	wg.Wait()
 
-	if call1From != peer3 || call2From != -1 {
+	if call1From != peer3.ID() || call2From != -1 {
 		t.Fatalf("want call From: %d get: %d and peer 2: %d",
 			peer3, call1From, call2From)
 	}
@@ -59,7 +61,8 @@ func TestDisconnect(t *testing.T) {
 	wg.Add(1)
 
 	builder := CreateBuilder()
-	peer1 := builder.AddEndpoint(func(from int, data []byte) {
+	peer1 := builder.AddEndpoint()
+	peer1.BindReceiver(func(from int, data []byte) {
 		fmt.Printf("run callback: %v\n", data)
 		if len(data) == 0 {
 			panic("peer is reachable")
@@ -67,29 +70,30 @@ func TestDisconnect(t *testing.T) {
 		wg.Done()
 	})
 
-	peer2 := builder.AddEndpoint(IgnoreCallback)
+	peer2 := builder.AddEndpoint()
+	peer2.BindReceiver(IgnoreCallback)
 
 	net := builder.Build()
-	net.Disable(peer2)
+	net.Disable(peer2.ID())
 
 	// local not reachable
-	err := net.Call(peer2, peer1, []byte{0x1})
+	err := peer2.Call(peer1.ID(), []byte{0x1})
 	if err != errPeerNotReachable {
 		t.Fatal("peer is reachable")
 	}
 
-	net.Enable(peer2)
+	net.Enable(peer2.ID())
 
-	err = net.Call(peer2, peer1, []byte{0x2})
+	err = peer2.Call(peer1.ID(), []byte{0x2})
 	if err != nil {
 		t.Fatalf("call it failed")
 	}
 	wg.Wait()
 
-	net.Disable(peer1)
+	net.Disable(peer1.ID())
 
 	// remote not reachable
-	err = net.Call(peer2, peer1, []byte{})
+	err = peer2.Call(peer1.ID(), []byte{})
 	if err != errPeerNotReachable {
 		t.Fatal("peer is reachable")
 	}
@@ -103,19 +107,21 @@ func TestCounts(t *testing.T) {
 	wg.Add(15)
 
 	builder := CreateBuilder()
-	peer1 := builder.AddEndpoint(func(from int, data []byte) {
+	peer1 := builder.AddEndpoint()
+	peer1.BindReceiver(func(from int, data []byte) {
 		wg.Done()
 	})
 
-	peer2 := builder.AddEndpoint(IgnoreCallback)
+	peer2 := builder.AddEndpoint()
+	peer2.BindReceiver(IgnoreCallback)
 
 	net := builder.Build()
 	for i := 0; i < 15; i++ {
-		go net.Call(peer2, peer1, []byte{0x1})
+		go peer2.Call(peer1.ID(), []byte{0x1})
 	}
 
 	wg.Wait()
-	if n := net.GetCount(peer2); n != 15 {
+	if n := net.GetCount(peer2.ID()); n != 15 {
 		t.Fatalf("wrong GetCount() %v, expected 15\n", n)
 	}
 }
@@ -128,22 +134,24 @@ func TestConcurrentMany(t *testing.T) {
 	wg.Add(nrpcs * nclients)
 	builder := CreateBuilder()
 
-	peer1 := builder.AddEndpoint(func(from int, data []byte) {
+	peer1 := builder.AddEndpoint()
+	peer1.BindReceiver(func(from int, data []byte) {
 		wg.Done()
 	})
 
-	peers := []int{}
+	peers := []Handler{}
 	for i := 0; i < nclients; i++ {
-		peer := builder.AddEndpoint(IgnoreCallback)
+		peer := builder.AddEndpoint()
+		peer.BindReceiver(IgnoreCallback)
 		peers = append(peers, peer)
 	}
 
-	net := builder.Build()
+	builder.Build()
 
 	for _, peer := range peers {
-		go func(peer int) {
+		go func(peer Handler) {
 			for j := 0; j < nrpcs; j++ {
-				go net.Call(peer, peer1, []byte{0x1})
+				go peer.Call(peer1.ID(), []byte{0x1})
 			}
 		}(peer)
 	}
@@ -160,23 +168,24 @@ func TestUnreliable(t *testing.T) {
 
 	builder := CreateBuilder()
 	var count uint64
-	peer1 := builder.AddEndpoint(func(from int, data []byte) {
+	peer1 := builder.AddEndpoint()
+	peer1.BindReceiver(func(from int, data []byte) {
 		atomic.AddUint64(&count, 1)
 		wg.Done()
 	})
 
-	peers := []int{}
+	peers := []Handler{}
 	for i := 0; i < nclients; i++ {
-		peer := builder.AddEndpoint(IgnoreCallback)
+		peer := builder.AddEndpoint()
 		peers = append(peers, peer)
 	}
 
 	net := builder.Build()
 	net.SetReliable(false)
 	for _, peer := range peers {
-		go func(peer int) {
+		go func(peer Handler) {
 			for j := 0; j < nrpcs; j++ {
-				err := net.Call(peer, peer1, []byte{0x1})
+				err := peer.Call(peer1.ID(), []byte{0x1})
 				if err != nil && err == errTimeout {
 					wg.Done()
 				}
@@ -198,21 +207,22 @@ func TestBenchmark(t *testing.T) {
 	wg.Add(n)
 
 	builder := CreateBuilder()
-	peer1 := builder.AddEndpoint(func(from int, data []byte) {
+	peer1 := builder.AddEndpoint()
+	peer1.BindReceiver(func(from int, data []byte) {
 		wg.Done()
 	})
 
-	peers := make([]int, 0)
+	peers := make([]Handler, 0)
 	for i := 0; i < n; i++ {
-		peer := builder.AddEndpoint(IgnoreCallback)
+		peer := builder.AddEndpoint()
 		peers = append(peers, peer)
 	}
 
-	net := builder.Build()
+	builder.Build()
 	t0 := time.Now()
 	for iters := 0; iters < n; iters++ {
 		go func(i int) {
-			net.Call(peers[i], peer1, []byte{0x1})
+			peers[i].Call(peer1.ID(), []byte{0x1})
 		}(iters)
 	}
 	wg.Wait()
