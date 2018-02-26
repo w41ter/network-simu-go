@@ -16,6 +16,8 @@ type Network interface {
 	Disable(id int)
 	Enable(id int)
 	IsEnable(id int) bool
+
+	Endpoints() []int
 }
 
 // Handler is a network handle.
@@ -23,9 +25,13 @@ type Handler interface {
 	Call(to int, data []byte) error
 	BindReceiver(cb endCallback)
 	ID() int
+	Close()
 
 	GetCount() uint64
 	Disable()
 	Enable()
 	IsEnable() bool
+
+	handleMessage(from int, data []byte)
+	bindNetwork(net Network)
 }

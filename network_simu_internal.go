@@ -21,7 +21,7 @@ func (n *network) service(msg message) {
 
 	end := n.getEndpoint(msg.To)
 
-	end.handler.HandleMessage(msg.From, msg.Data)
+	end.handler.handleMessage(msg.From, msg.Data)
 }
 
 func (n *network) call(msg *message) error {

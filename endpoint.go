@@ -9,10 +9,10 @@ import (
 type endpoint struct {
 	count   uint64
 	enab    *sync.AtomicBool
-	handler *handler
+	handler Handler
 }
 
-func createEndpoint(handler *handler) *endpoint {
+func createEndpoint(handler Handler) *endpoint {
 	return &endpoint{
 		count:   0,
 		enab:    sync.NewAtomicBool(),

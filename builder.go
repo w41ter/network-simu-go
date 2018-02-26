@@ -2,7 +2,7 @@ package network
 
 type endCallback func(from int, data []byte)
 
-// Builder used by constom to build network
+// Builder used by custom to build network
 type Builder interface {
 	// AddEndpoint add new end to network, and return it id.
 	AddEndpoint() Handler
@@ -38,7 +38,7 @@ func (b *builder) Build() Network {
 	net := createNetwork(b)
 	for i := 0; i < len(b.ends); i++ {
 		end := b.ends[i]
-		end.handler.BindNetwork(net)
+		end.handler.bindNetwork(net)
 	}
 	return net
 }

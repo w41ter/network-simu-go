@@ -32,7 +32,7 @@ func (h *handler) BindReceiver(cb endCallback) {
 	h.callback = cb
 }
 
-func (h *handler) HandleMessage(from int, data []byte) {
+func (h *handler) handleMessage(from int, data []byte) {
 	callback := h.getCallback()
 	if callback != nil {
 		callback(from, data)
@@ -42,7 +42,7 @@ func (h *handler) HandleMessage(from int, data []byte) {
 }
 
 // BindNetwork must call for initialize.
-func (h *handler) BindNetwork(net Network) {
+func (h *handler) bindNetwork(net Network) {
 	h.net = net
 }
 
@@ -66,4 +66,8 @@ func (h *handler) getCallback() endCallback {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 	return h.callback
+}
+
+func (h *handler) Close() {
+	/* ignore */
 }
