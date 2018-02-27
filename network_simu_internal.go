@@ -1,56 +1,51 @@
 package network
 
-import "fmt"
-
-func (n *network) validate(id int) {
-	if len(n.ends) <= id || id < 0 {
+func (net *network) validate(id int) {
+	if len(net.ends) <= id || id < 0 {
 		panic(errEndpointNotExists)
 	}
 }
 
-func (n *network) getEndpoint(id int) *endpoint {
-	n.validate(id)
-	return n.ends[id]
+func (net *network) getEndpoint(id int) *endpoint {
+	net.validate(id)
+	return net.ends[id]
 }
 
-func (n *network) service(msg message) {
-	if err := n.strategies.after(msg.From, msg.To); err != nil {
-		fmt.Printf("strategies: %d => %d err: %v\n", msg.From, msg.To, err)
+func (net *network) service(msg message) {
+	if err := net.strategies.after(msg.From, msg.To); err != nil {
+		msg.Ack <- err
 		return
 	}
 
-	end := n.getEndpoint(msg.To)
+	end := net.getEndpoint(msg.To)
 
 	end.handler.handleMessage(msg.From, msg.Data)
+	msg.Ack <- nil
 }
 
-func (n *network) call(msg *message) error {
-	n.validate(msg.From)
-	n.validate(msg.To)
+func (net *network) call(msg *message) error {
+	net.validate(msg.From)
+	net.validate(msg.To)
 
-	if err := n.strategies.before(msg.From, msg.To); err != nil {
+	if err := net.strategies.before(msg.From, msg.To); err != nil {
 		return err
 	}
 
-	n.getEndpoint(msg.From).increate()
-	n.link <- *msg
-	return nil
+	net.getEndpoint(msg.From).increate()
+	net.link <- *msg
+	return <-msg.Ack
 }
 
-func (n *network) isLongDelay() bool {
-	n.mutex.RLock()
-	defer n.mutex.RUnlock()
+func (net *network) isLongDelay() bool {
+	net.mutex.RLock()
+	defer net.mutex.RUnlock()
 
-	return n.longDelay
+	return net.longDelay
 }
 
-func (n *network) isReliable() bool {
-	n.mutex.RLock()
-	defer n.mutex.RUnlock()
+func (net *network) isReliable() bool {
+	net.mutex.RLock()
+	defer net.mutex.RUnlock()
 
-	return n.reliable
-}
-
-func (net *network) registerEnableListener(callback func(int)) {
-	net.enableCallbacks = append(net.enableCallbacks, callback)
+	return net.reliable
 }

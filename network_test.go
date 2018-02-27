@@ -228,30 +228,3 @@ func TestBenchmark(t *testing.T) {
 	wg.Wait()
 	fmt.Printf("%v for %v\n", time.Since(t0), n)
 }
-
-func TestCheck(t *testing.T) {
-	builder := CreateAliveBuilder(100, 50)
-	var rwg sync.WaitGroup
-	var wwg sync.WaitGroup
-	rwg.Add(1)
-	wwg.Add(1)
-	end1 := builder.AddEndpoint(func(end int) {
-		rwg.Done()
-	}, func(end int) {
-		wwg.Done()
-	})
-
-	end2 := builder.AddEndpoint(func(end int) {
-
-	}, func(end int) {
-
-	})
-
-	builder.Build()
-
-	rwg.Wait()
-	wwg.Wait()
-
-	end1.Close()
-	end2.Close()
-}

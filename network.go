@@ -18,8 +18,6 @@ type Network interface {
 	IsEnable(id int) bool
 
 	Endpoints() []int
-
-	registerEnableListener(func(int))
 }
 
 // Handler is a network handle.
