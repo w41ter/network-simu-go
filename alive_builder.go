@@ -47,6 +47,7 @@ func (b *aliveBuilder) Build() Network {
 		end := b.ends[i]
 		end.handler.bindNetwork(net)
 		b.handlers[i].setEndpoints(endpoints)
+		net.registerEnableListener(b.handlers[i].enableCallback)
 	}
 	return net
 }

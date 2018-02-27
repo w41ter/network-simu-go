@@ -50,3 +50,7 @@ func (n *network) isReliable() bool {
 
 	return n.reliable
 }
+
+func (net *network) registerEnableListener(callback func(int)) {
+	net.enableCallbacks = append(net.enableCallbacks, callback)
+}

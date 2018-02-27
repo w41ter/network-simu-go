@@ -1,9 +1,9 @@
 package network
 
 import (
-	"runtime"
 	"sync/atomic"
 	"time"
+	"runtime"
 )
 
 type writeTimeoutCallback func(end int)
@@ -42,6 +42,14 @@ func createRemote(id, readTimeout, writeTimeout int,
 	return r
 }
 
+func (r *remote) resetReadTimeout() {
+	r.readTimeoutCh = time.After(time.Duration(r.readTimeout) * time.Millisecond)
+}
+
+func (r *remote) resetWriteTimeout() {
+	r.writeTimeoutCh = time.After(time.Duration(r.writeTimeout) * time.Millisecond)
+}
+
 func (r *remote) service() {
 	go func() {
 		for atomic.LoadInt32(&r.exit) == 0 {
@@ -49,9 +57,9 @@ func (r *remote) service() {
 
 			select {
 			case <-r.read:
-				r.readTimeoutCh = time.After(time.Duration(r.readTimeout) * time.Millisecond)
+				r.resetReadTimeout()
 			case <-r.write:
-				r.writeTimeoutCh = time.After(time.Duration(r.writeTimeout) * time.Millisecond)
+				r.resetWriteTimeout()
 			default:
 				/* ignore */
 			}
@@ -164,5 +172,16 @@ func (h *aliveHandler) handleMessage(from int, data []byte) {
 func (h *aliveHandler) Close() {
 	for i := 0; i < len(h.remotes); i++ {
 		h.remotes[i].close()
+	}
+}
+
+func (h *aliveHandler) enableCallback(end int) {
+	for i := 0; i < len(h.remotes); i++ {
+		remote := h.remotes[i]
+		if remote.id == end {
+			remote.handleMessage([]byte{})
+			remote.sendMessage([]byte{})
+			return
+		}
 	}
 }

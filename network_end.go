@@ -9,6 +9,9 @@ func (n *network) Disable(id int) {
 }
 
 func (n *network) Enable(id int) {
+	for i := 0; i < len(n.enableCallbacks); i++ {
+		n.enableCallbacks[i](id)
+	}
 	n.getEndpoint(id).enable()
 }
 

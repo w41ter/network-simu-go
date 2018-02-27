@@ -12,20 +12,22 @@ var (
 )
 
 type network struct {
-	mutex      sync.RWMutex
-	longDelay  bool
-	reliable   bool
-	ends       []*endpoint
-	link       chan message
-	strategies *strategies
+	mutex           sync.RWMutex
+	longDelay       bool
+	reliable        bool
+	ends            []*endpoint
+	link            chan message
+	strategies      *strategies
+	enableCallbacks []func(int)
 }
 
 func createNetwork(b *builder) *network {
 	net := &network{
-		longDelay: b.longDelay,
-		reliable:  b.reliable,
-		ends:      b.ends,
-		link:      make(chan message, 1024),
+		longDelay:       b.longDelay,
+		reliable:        b.reliable,
+		ends:            b.ends,
+		link:            make(chan message, 1024),
+		enableCallbacks: make([]func(int), 0),
 	}
 
 	net.strategies = createStrategiesHandler(net)
