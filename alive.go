@@ -128,13 +128,15 @@ func (h *aliveHandler) setEndpoints(ends []int) {
 
 func (h *aliveHandler) handleWriteTimeout(end int) {
 	if h.writeCb != nil {
-		h.writeCb(end)
+		// prevent congestion
+		go h.writeCb(end)
 	}
 }
 
 func (h *aliveHandler) handleReadTimeout(end int) {
 	if h.readCb != nil {
-		h.readCb(end)
+		// prevent congestion
+		go h.readCb(end)
 	}
 }
 
