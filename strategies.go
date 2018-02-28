@@ -19,6 +19,7 @@ func (sg *strategies) unreliableStrategies() error {
 	reliable := sg.net.isReliable()
 	if !reliable && (rand.Int()%1000) < 100 {
 		// drop the request, return as if timeout
+		time.Sleep(time.Second)
 		return errTimeout
 	}
 
@@ -29,7 +30,7 @@ func (sg *strategies) longDelayStrategies() {
 	longDelay := sg.net.isLongDelay()
 	if longDelay {
 		ms := 0
-		ms = rand.Int() % 7000
+		ms = rand.Int() % 200
 		time.Sleep(time.Duration(ms) * time.Millisecond)
 	} else {
 		// short delay
